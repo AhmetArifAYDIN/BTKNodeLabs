@@ -1,0 +1,45 @@
+const express = require("express");
+
+const app = express();
+const mongoose = require("mongoose");
+const path = require("path");
+const cors = require("cors");
+const errorHandler = require("./middlewares/error");
+app.use(cors());
+app.use(express.json());
+// Routes
+const ogretmenRoute = require("./routes/ogretmen");
+const carRoute = require("./routes/carRouter");
+
+const loggerMiddleware = require("./middlewares/logger");
+
+app.use("/ogretmen", ogretmenRoute);
+app.use("/car", carRoute);
+app.use(loggerMiddleware);
+
+const MONGO_URI = "";
+mongoose
+  .connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((error) => {
+    console.error("Error connecting to MongoDB:", error);
+  });
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Global Error Handling
+app.use(errorHandler);
+
+app.use("*", (req, res, next) => {
+  res.status(404).json("Bulunamadı");
+});
+
+const PORT = 8080;
+app.listen(PORT, () => {
+  console.log(`Sunucu şu portta çalışıyor : ${PORT}`);
+});
